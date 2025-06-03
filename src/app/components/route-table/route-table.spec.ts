@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { RouteTable } from './route-table';
+import { RouteTableComponent } from './route-table';
 
 describe('RouteTable', () => {
-  let component: RouteTable;
-  let fixture: ComponentFixture<RouteTable>;
+  let component: RouteTableComponent;
+  let fixture: ComponentFixture<RouteTableComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [RouteTable]
+      imports: [RouteTableComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(RouteTable);
+    fixture = TestBed.createComponent(RouteTableComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
