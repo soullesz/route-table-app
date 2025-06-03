@@ -1,4 +1,21 @@
+
+
 <div class="app-root-container">
   <h2>Список действующих маршрутов IPv4</h2>
-  <app-route-table></app-route-table>
+
+ 
+  <nav class="navigation">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Table</a>
+    <a routerLink="/page1" routerLinkActive="active">Page 1</a>
+    <a routerLink="/page2" routerLinkActive="active">Page 2</a>
+    <a routerLink="/page3" routerLinkActive="active">Page 3</a>
+    <a routerLink="/page4" routerLinkActive="active">Page 4</a>
+    <a routerLink="/page5" routerLinkActive="active">Page 5</a>
+    <a routerLink="/page6" routerLinkActive="active">Page 6</a>
+    <a routerLink="/page7" routerLinkActive="active">Page 7</a>
+    <a routerLink="/page8" routerLinkActive="active">Page 8</a>
+  </nav>
+
+  
+  <router-outlet></router-outlet>
 </div>
