@@ -1,3 +1,5 @@
+
+
 .app-root-container {
   display: flex;
   flex-direction: column;
@@ -10,3 +12,22 @@ h2 {
   font-size: 24px;
   font-weight: 500;
 }
+
+
+.navigation {
+  margin: 16px 0;
+  display: flex;
+  gap: 12px;
+}
+
+.navigation a {
+  text-decoration: none;
+  color: #1976d2;
+  font-weight: 500;
+}
+
+.navigation a.active {
+  color: #0d47a1;
+  text-decoration: underline;
+}
+
