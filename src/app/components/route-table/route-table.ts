@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatSort, Sort, MatSortModule } from '@angular/material/sort';
+import { MatSort, MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { Subscription } from 'rxjs';
@@ -11,17 +11,12 @@ import { RouteService } from '../../services/route';
 @Component({
   selector: 'app-route-table',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatTableModule,
-    MatSortModule,
-    MatIconModule
-  ],
+  imports: [CommonModule, MatTableModule, MatSortModule, MatIconModule],
   templateUrl: './route-table.html',
   styleUrls: ['./route-table.css']
 })
 export class RouteTableComponent implements OnInit, AfterViewInit, OnDestroy {
-  displayedColumns: string[] = ['address', 'gateway', 'interface'];
+  displayedColumns: string[] = ['address', 'mask', 'gateway', 'interface'];
   dataSource: MatTableDataSource<Route> = new MatTableDataSource<Route>([]);
   @ViewChild(MatSort) matSort!: MatSort;
   private dataSubscription!: Subscription;
@@ -41,27 +36,15 @@ export class RouteTableComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onSortChange(sortState: Sort): void {
     this.currentSort = sortState;
-
     if (!sortState.active || sortState.direction === '') {
       this.routeService.resetRoutes();
       return;
     }
-
-    const field = sortState.active as keyof Omit<Route, 'uuid' | 'mask'>;
-
-    if (sortState.direction === 'asc') {
-      this.routeService.sortRoutes(field);
-    } else {
-      this.routeService.sortRoutes(field);
-      const tmp = [...this.dataSource.data].reverse();
-      this.dataSource.data = tmp;
-      this.routeService['_routes$'].next(tmp);
-    }
+    this.routeService.sortRoutes(sortState.active as keyof Omit<Route, 'uuid'>, sortState.direction as 'asc' | 'desc');
   }
 
   ngOnDestroy(): void {
-    if (this.dataSubscription) {
-      this.dataSubscription.unsubscribe();
-    }
+    this.dataSubscription.unsubscribe();
   }
 }
+
