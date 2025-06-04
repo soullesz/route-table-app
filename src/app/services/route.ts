@@ -1,58 +1,51 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { Route } from '../models/route.model';
 import { ROUTES_DATA } from '../data/routes-data';
+import { Route } from '../models/route.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class RouteService {
   private _routes$ = new BehaviorSubject<Route[]>([...ROUTES_DATA]);
+  routes$: Observable<Route[]> = this._routes$.asObservable();
 
-  get routes$(): Observable<Route[]> {
-    return this._routes$.asObservable();
+  private ipToNumber(ip: string): number {
+    const address = ip.split('/')[0].trim();
+    const octets = address.split('.').map(o => parseInt(o, 10));
+    if (octets.length !== 4 || octets.some(isNaN)) {
+      return 0;
+    }
+    return (
+      ((octets[0] & 0xff) << 24) +
+      ((octets[1] & 0xff) << 16) +
+      ((octets[2] & 0xff) << 8) +
+      (octets[3] & 0xff)
+    ) >>> 0;
   }
 
-  sortRoutes(field: keyof Omit<Route, 'uuid' | 'mask'>): void {
-    const currentRoutes = [...this._routes$.getValue()];
-
-    if (field === 'address') {
-      currentRoutes.sort((a, b) => this.compareIPAndMask(
-        `${a.address}/${a.mask}`, `${b.address}/${b.mask}`));
-    } else if (field === 'gateway') {
-      currentRoutes.sort((a, b) => this.compareIPs(a.gateway, b.gateway));
-    } else if (field === 'interface') {
-      currentRoutes.sort((a, b) => a.interface.localeCompare(b.interface));
-    }
-
-    this._routes$.next(currentRoutes);
+  sortRoutes(field: keyof Omit<Route, 'uuid'>, direction: 'asc' | 'desc'): void {
+    const current = [...this._routes$.value];
+    current.sort((a, b) => {
+      let res = 0;
+      if (field === 'address' || field === 'gateway') {
+        const na = this.ipToNumber(a[field]);
+        const nb = this.ipToNumber(b[field]);
+        res = na - nb;
+      } else if (field === 'mask') {
+        const ma = parseInt(a.mask, 10);
+        const mb = parseInt(b.mask, 10);
+        res = ma - mb;
+      } else {
+        res = a.interface.localeCompare(b.interface);
+      }
+      return direction === 'asc' ? res : -res;
+    });
+    this._routes$.next(current);
   }
 
   resetRoutes(): void {
     this._routes$.next([...ROUTES_DATA]);
   }
-
-  private compareIPAndMask(a: string, b: string): number {
-    const [ipA, maskA] = a.split('/');
-    const [ipB, maskB] = b.split('/');
-    const ipCompare = this.compareIPs(ipA, ipB);
-    if (ipCompare !== 0) {
-      return ipCompare;
-    }
-    return Number(maskA) - Number(maskB);
-  }
-
-  private compareIPs(ip1: string, ip2: string): number {
-    const aOctets = ip1.split('.').map(x => Number(x));
-    const bOctets = ip2.split('.').map(x => Number(x));
-    for (let i = 0; i < 4; i++) {
-      if (aOctets[i] < bOctets[i]) {
-        return -1;
-      }
-      if (aOctets[i] > bOctets[i]) {
-        return 1;
-      }
-    }
-    return 0;
-  }
 }
+

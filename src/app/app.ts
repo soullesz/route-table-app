@@ -4,7 +4,7 @@ import { RouteTableComponent } from './components/route-table/route-table';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
-  selector: 'app',
+  selector: 'app-root',
   standalone: true,
   imports: [
     RouteTableComponent,
