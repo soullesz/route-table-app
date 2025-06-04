@@ -1,51 +1,55 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { ROUTES_DATA } from '../data/routes-data';
 import { Route } from '../models/route.model';
+import { ROUTES_DATA } from '../data/routes-data';
 
 @Injectable({
   providedIn: 'root'
 })
 export class RouteService {
-  private _routes$ = new BehaviorSubject<Route[]>([...ROUTES_DATA]);
-  routes$: Observable<Route[]> = this._routes$.asObservable();
+  private originalRoutes: Route[] = [...ROUTES_DATA];
+  private routesSubject = new BehaviorSubject<Route[]>([...this.originalRoutes]);
+  routes$ = this.routesSubject.asObservable();
 
-  private ipToNumber(ip: string): number {
-    const address = ip.split('/')[0].trim();
-    const octets = address.split('.').map(o => parseInt(o, 10));
-    if (octets.length !== 4 || octets.some(isNaN)) {
-      return 0;
-    }
-    return (
-      ((octets[0] & 0xff) << 24) +
-      ((octets[1] & 0xff) << 16) +
-      ((octets[2] & 0xff) << 8) +
-      (octets[3] & 0xff)
-    ) >>> 0;
+  private isValidIp(ip: string): boolean {
+    const parts = ip.split('.');
+    if (parts.length !== 4) return false;
+    return parts.every(p => {
+      const num = Number(p);
+      return !isNaN(num) && num >= 0 && num <= 255;
+    });
   }
 
-  sortRoutes(field: keyof Omit<Route, 'uuid'>, direction: 'asc' | 'desc'): void {
-    const current = [...this._routes$.value];
-    current.sort((a, b) => {
-      let res = 0;
-      if (field === 'address' || field === 'gateway') {
-        const na = this.ipToNumber(a[field]);
-        const nb = this.ipToNumber(b[field]);
-        res = na - nb;
-      } else if (field === 'mask') {
-        const ma = parseInt(a.mask, 10);
-        const mb = parseInt(b.mask, 10);
-        res = ma - mb;
+  private ipToNumber(ip: string): number {
+    if (!this.isValidIp(ip)) return -1;
+    return ip.split('.')
+      .map(p => Number(p))
+      .reduce((acc, octet) => (acc << 8) + octet, 0);
+  }
+
+  sortRoutes(field: keyof Omit<Route, 'uuid' | 'mask'>): void {
+    const routes = [...this.routesSubject.value];
+    const valid: { route: Route; key: number }[] = [];
+    const invalid: Route[] = [];
+
+    routes.forEach(r => {
+      const value = field === 'address' || field === 'gateway'
+        ? this.ipToNumber(r[field] as string)
+        : NaN;
+      if (value >= 0) {
+        valid.push({ route: r, key: value });
       } else {
-        res = a.interface.localeCompare(b.interface);
+        invalid.push(r);
       }
-      return direction === 'asc' ? res : -res;
     });
-    this._routes$.next(current);
+
+    valid.sort((a, b) => a.key - b.key);
+    const sorted = [...valid.map(v => v.route), ...invalid];
+    this.routesSubject.next(sorted);
   }
 
   resetRoutes(): void {
-    this._routes$.next([...ROUTES_DATA]);
+    this.routesSubject.next([...this.originalRoutes]);
   }
 }
 
