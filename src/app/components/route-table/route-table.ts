@@ -1,32 +1,39 @@
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatSort, MatSortModule, Sort } from '@angular/material/sort';
+import { MatSort, Sort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { Subscription } from 'rxjs';
-
 import { Route } from '../../models/route.model';
 import { RouteService } from '../../services/route';
 
 @Component({
   selector: 'app-route-table',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatSortModule, MatIconModule],
+  imports: [
+    CommonModule,
+    MatTableModule,
+    MatSortModule,
+    MatIconModule
+  ],
   templateUrl: './route-table.html',
   styleUrls: ['./route-table.css']
 })
 export class RouteTableComponent implements OnInit, AfterViewInit, OnDestroy {
-  displayedColumns: string[] = ['address', 'mask', 'gateway', 'interface'];
+  displayedColumns: string[] = ['address', 'gateway', 'interface'];
   dataSource: MatTableDataSource<Route> = new MatTableDataSource<Route>([]);
   @ViewChild(MatSort) matSort!: MatSort;
   private dataSubscription!: Subscription;
   currentSort: Sort = { active: '', direction: '' };
+  isLoading = true;
 
-  constructor(private routeService: RouteService) {}
+  constructor(private routeService: RouteService) { }
 
   ngOnInit(): void {
+    this.isLoading = true;
     this.dataSubscription = this.routeService.routes$.subscribe(routes => {
       this.dataSource.data = routes;
+      this.isLoading = false;
     });
   }
 
@@ -40,11 +47,22 @@ export class RouteTableComponent implements OnInit, AfterViewInit, OnDestroy {
       this.routeService.resetRoutes();
       return;
     }
-    this.routeService.sortRoutes(sortState.active as keyof Omit<Route, 'uuid'>, sortState.direction as 'asc' | 'desc');
+    this.routeService.sortRoutes(sortState.active as keyof Omit<Route, 'uuid' | 'mask'>);
+    if (sortState.direction === 'desc') {
+      const temp = [...this.dataSource.data].reverse();
+      this.dataSource.data = temp;
+      this.routeService['routesSubject'].next(temp);
+    }
+  }
+
+  hasNoData(): boolean {
+    return !this.isLoading && this.dataSource.data.length === 0;
   }
 
   ngOnDestroy(): void {
-    this.dataSubscription.unsubscribe();
+    if (this.dataSubscription) {
+      this.dataSubscription.unsubscribe();
+    }
   }
 }
 
