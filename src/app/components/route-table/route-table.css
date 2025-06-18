@@ -21,3 +21,16 @@ td.mat-cell {
   vertical-align: middle;
   margin-left: 4px;
 }
+
+.table-container {
+  position: relative;
+  min-height: 200px;
+}
+
+mat-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
