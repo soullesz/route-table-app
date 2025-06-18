@@ -1,55 +1,37 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { Route } from '../models/route.model';
-import { ROUTES_DATA } from '../data/routes-data';
+import { Injectable }      from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
+import { ROUTES_DATA }     from '../data/routes-data';
+import { Route }           from '../models/route.model';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class RouteService {
-  private originalRoutes: Route[] = [...ROUTES_DATA];
-  private routesSubject = new BehaviorSubject<Route[]>([...this.originalRoutes]);
-  routes$ = this.routesSubject.asObservable();
+  private _bs = new BehaviorSubject<Route[]>([...ROUTES_DATA]);
+  readonly routes$ = this._bs.asObservable();
 
-  private isValidIp(ip: string): boolean {
-    const parts = ip.split('.');
-    if (parts.length !== 4) return false;
-    return parts.every(p => {
-      const num = Number(p);
-      return !isNaN(num) && num >= 0 && num <= 255;
-    });
+  private parseIp(ip: string): number {
+    return ip
+      .split('.')
+      .map(n => parseInt(n,10) || 0)
+      .reduce((acc, oct) => (acc << 8) + oct, 0);
   }
 
-  private ipToNumber(ip: string): number {
-    if (!this.isValidIp(ip)) return -1;
-    return ip.split('.')
-      .map(p => Number(p))
-      .reduce((acc, octet) => (acc << 8) + octet, 0);
-  }
-
-  sortRoutes(field: keyof Omit<Route, 'uuid' | 'mask'>): void {
-    const routes = [...this.routesSubject.value];
-    const valid: { route: Route; key: number }[] = [];
-    const invalid: Route[] = [];
-
-    routes.forEach(r => {
-      const value = field === 'address' || field === 'gateway'
-        ? this.ipToNumber(r[field] as string)
-        : NaN;
-      if (value >= 0) {
-        valid.push({ route: r, key: value });
+  sortRoutes(field: keyof Omit<Route,'uuid'|'mask'>, dir: 'asc'|'desc'): void {
+    const arr = [...this._bs.value];
+    arr.sort((a,b) => {
+      let res: number;
+      if (field==='address' || field==='gateway') {
+        res = this.parseIp(a[field]) - this.parseIp(b[field]);
       } else {
-        invalid.push(r);
+        res = a[field].localeCompare(b[field]);
       }
+      return dir==='asc' ? res : -res;
     });
-
-    valid.sort((a, b) => a.key - b.key);
-    const sorted = [...valid.map(v => v.route), ...invalid];
-    this.routesSubject.next(sorted);
+    this._bs.next(arr);
   }
 
   resetRoutes(): void {
-    this.routesSubject.next([...this.originalRoutes]);
+    this._bs.next([...ROUTES_DATA]);
   }
 }
+
 
