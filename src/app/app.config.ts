@@ -1,14 +1,12 @@
-import { provideRouter } from '@angular/router';
-import { importProvidersFrom } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { provideAnimations } from '@angular/platform-browser/animations';
-
-import { appRoutes } from './app.routes'; 
-import { MatTableModule } from '@angular/material/table';
-import { MatSortModule } from '@angular/material/sort';
-import { MatIconModule } from '@angular/material/icon';
-
-import type { ApplicationConfig } from '@angular/core';
+import { ApplicationConfig, importProvidersFrom } from '@angular/core';
+import { BrowserModule }                         from '@angular/platform-browser';
+import { provideAnimations }                     from '@angular/platform-browser/animations';
+import { provideRouter }                         from '@angular/router';
+import { MatTableModule }                        from '@angular/material/table';
+import { MatSortModule }                         from '@angular/material/sort';
+import { MatIconModule }                         from '@angular/material/icon';
+import { MatProgressSpinnerModule }              from '@angular/material/progress-spinner';
+import { appRoutes }                             from './app.routes';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -16,9 +14,11 @@ export const appConfig: ApplicationConfig = {
       BrowserModule,
       MatTableModule,
       MatSortModule,
-      MatIconModule
+      MatIconModule,
+      MatProgressSpinnerModule
     ),
     provideAnimations(),
-    provideRouter(appRoutes) 
+    provideRouter(appRoutes)
   ]
 };
+
