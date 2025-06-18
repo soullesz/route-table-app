@@ -1,46 +1,29 @@
 <div class="table-container">
-  <div *ngIf="isLoading" class="loading">Загрузка...</div>
-  <div *ngIf="!isLoading && hasNoData()" class="no-data">Нет данных для отображения</div>
+  <mat-spinner *ngIf="isLoading" diameter="50"></mat-spinner>
+  <div *ngIf="!isLoading && dataSource.data.length===0">Нет данных</div>
 
-  <table *ngIf="!isLoading && !hasNoData()" mat-table [dataSource]="dataSource" matSort (matSortChange)="onSortChange($event)" class="mat-elevation-z8">
+  <table *ngIf="!isLoading && dataSource.data.length" mat-table [dataSource]="dataSource" matSort (matSortChange)="onSortChange($event)" class="mat-elevation-z8">
+
     <ng-container matColumnDef="address">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header="address">
-        Адрес назначения
-        <mat-icon *ngIf="currentSort.active === 'address'">
-          {{ currentSort.direction === 'asc' ? 'arrow_upward' : 'arrow_downward' }}
-        </mat-icon>
-      </th>
-      <td mat-cell *matCellDef="let element">
-        {{ element.address }} / {{ element.mask }}
-      </td>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header="address">Адрес назначения</th>
+      <td mat-cell *matCellDef="let r">{{ r.address }} / {{ r.mask }}</td>
     </ng-container>
 
     <ng-container matColumnDef="gateway">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header="gateway">
-        Шлюз
-        <mat-icon *ngIf="currentSort.active === 'gateway'">
-          {{ currentSort.direction === 'asc' ? 'arrow_upward' : 'arrow_downward' }}
-        </mat-icon>
-      </th>
-      <td mat-cell *matCellDef="let element">
-        {{ element.gateway }}
-      </td>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header="gateway">Шлюз</th>
+      <td mat-cell *matCellDef="let r">{{ r.gateway }}</td>
     </ng-container>
 
     <ng-container matColumnDef="interface">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header="interface">
-        Интерфейс
-        <mat-icon *ngIf="currentSort.active === 'interface'">
-          {{ currentSort.direction === 'asc' ? 'arrow_upward' : 'arrow_downward' }}
-        </mat-icon>
-      </th>
-      <td mat-cell *matCellDef="let element">
-        {{ element.interface }}
-      </td>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header="interface">Интерфейс</th>
+      <td mat-cell *matCellDef="let r">{{ r.interface }}</td>
     </ng-container>
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    <tr mat-row        *matRowDef="let row; columns: displayedColumns"></tr>
   </table>
-</div> 
+  
+</div>
+
+
 
